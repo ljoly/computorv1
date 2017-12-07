@@ -78,11 +78,10 @@ func removeWhitespaces(s string) string {
 }
 
 func main() {
-	if len(os.Args) == 3 {
-		error(3)
-	}
 	if len(os.Args) > 2 {
 		error(2)
+	} else if len(os.Args) < 2 {
+		error(3)
 	}
 	str := strings.Split(os.Args[1], "=")
 	if len(str) != 2 {
