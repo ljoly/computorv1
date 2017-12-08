@@ -5,13 +5,12 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 // Env : a structure to store members of the equation
 type Env struct {
-	left    string
-	right   string
-	reduced string
+	left, right, reduced, a, b, c string
 }
 
 func error(e int) {
@@ -25,26 +24,18 @@ func error(e int) {
 	os.Exit(-1)
 }
 
-func countChar(s string, c byte) int {
-	len := len(s)
-	m := 0
-	for i := 0; i < len; i++ {
-		if s[i] == c {
-			m++
-		}
-	}
-	return m
-}
-
 func reduceMember(s string) string {
 	// len := len(s)
 	ret := ""
 
-	fmt.Println(s)
-	re := regexp.MustCompile("\\^2")
-	fmt.Println(re.FindStringIndex(s))
-	loc := re.FindStringIndex(s)
-	fmt.Println(s[loc[0]:loc[1]])
+	// fmt.Println(s)
+	// re2 := regexp.MustCompile("X\\^2")
+	// re1 := regexp.MustCompile("X\\^1")
+	// for regexp.MustCompile("X\\^2") != nil {
+	// 	fmt.Println(re.FindStringIndex(s))
+	// loc := re.FindStringIndex(s)
+	// fmt.Println(s[loc[0]:loc[1]])
+	// }
 
 	// reg := regexp.MustCompile("ab?")
 	// fmt.Println(reg.FindStringIndex("tablett"))
@@ -53,29 +44,82 @@ func reduceMember(s string) string {
 	return ret
 }
 
-func getReduced(e Env) {
-	e.left = reduceMember(e.left)
-	// e.right = reduceMember(e.right)
+// func getReduced(e Env) {
+// 	if utf8.RuneCountInString(e.right) != 1 && e.right[0] != '0' {
+// 		e.right = reduceMember(e.right)
+// 	}
+// 	e.left = reduceMember(e.left)
 
-	// e.reduced = e.reduced + e.left + e.right + "= 0"
-	// strings.Contains(e.reduced, "^2")
-	fmt.Println("Reduced form:", e.reduced)
-}
+// 	// e.reduced = e.reduced + e.left + e.right + "= 0"
+// 	// strings.Contains(e.reduced, "^2")
+// 	// fmt.Println("Reduced form:", e.reduced)
+// }
 
-func removeWhitespaces(s string) string {
+func revertSigns(s string) string {
 	var ret string
-	len := len(s)
+
+	if s[0] != '-' {
+		ret += "-"
+	}
+	len := utf8.RuneCountInString(s)
 	for i := 0; i < len; i++ {
 		a := s[i]
-		if a == 'X' && i+2 < len && s[i+1] == '^' && s[i+2] == '0' {
-			ret = ret + "X"
-			i += 2
-		} else if a != ' ' && a != '\r' && a != '\n' && a != '\t' && a != '\f' && a != '\v' {
-			ret = ret + string(s[i])
+		if a == '-' {
+			ret += "+"
+		} else if a == '+' {
+			ret += "-"
+		} else {
+			ret += string(a)
 		}
 	}
 	return ret
 }
+
+func calculate(e Env, s string) {
+
+}
+
+func removeUselessSigns(s string) string {
+	var ret string
+	len := utf8.RuneCountInString(s)
+
+	i := 0
+	if s[0] == '+' {
+		i++
+	}
+	for ; i < len; i++ {
+		a := s[i]
+		if a == 'X' && s[i+1] == '^' && s[i+2] == '0' {
+			i += 2
+		} else if a == 'X' && s[i+1] == '^' && s[i+2] == '1' {
+			ret += "X"
+			i += 2
+		} else if a == 'X' && s[i+1] == '^' && s[i+2] == '2' {
+			ret += "X^2"
+			i += 2
+		} else if a != '*' {
+			ret += string(a)
+		}
+	}
+	return ret
+}
+
+func removeWhitespaces(s string) string {
+	var ret string
+	len := utf8.RuneCountInString(s)
+
+	for i := 0; i < len; i++ {
+		a := s[i]
+		if a != ' ' && a != '\r' && a != '\n' && a != '\t' && a != '\f' && a != '\v' {
+			ret += string(a)
+		}
+	}
+	return ret
+}
+
+// ([+-])?(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X)|X))|(\d+(?:\.\d+)?)|(?:(?:\*X)|X))(?:\^(\d+))?
+// SIZE FULL MATCH POUR PREMIER CHECK
+// CHECK TEST.GO
 
 func main() {
 	if len(os.Args) > 2 {
@@ -83,18 +127,30 @@ func main() {
 	} else if len(os.Args) < 2 {
 		error(3)
 	}
-	str := strings.Split(os.Args[1], "=")
+	arg := removeWhitespaces(os.Args[1])
+	str := strings.Split(arg, "=")
 	if len(str) != 2 {
-		println("EQUALS")
+		fmt.Println("LEN")
 		error(1)
 	}
-	regex := `^((\s*[+-]?\s*[1-9][0-9]{0,9}\s*\*\s*X\s*(|(\^\s*[0-2]))\s*)+)$`
-	matchLeft, _ := regexp.MatchString(regex, str[0])
-	matchRight, _ := regexp.MatchString(regex, str[1])
+	fmt.Println(str[0])
+	fmt.Println(str[1])
+	regex := `((?m)([+-])?(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X)|X))|(\d+(?:\.\d+)?)|(?:(?:\*X)|X))(?:\^(\d+))?`
+	matchLeft, _ := regexp.MatchString(regex, str[0])  // CHANGER FUNCTION
+	matchRight, _ := regexp.MatchString(regex, str[1]) // SAME
 	if !matchLeft || !matchRight {
-		println("FORMAT")
+		fmt.Println("MATCH")
 		error(1)
 	}
-	e := Env{removeWhitespaces(str[0]), removeWhitespaces(str[1]), ""}
-	getReduced(e)
+	e := Env{str[0], str[1], "", "", "", ""}
+	e.left = removeUselessSigns(e.left)
+	e.right = removeUselessSigns(e.right)
+	fmt.Println("LEFT", e.left)
+	fmt.Println("RIGHT", e.right)
+	e.right = revertSigns(e.right)
+	fmt.Println("REVERSE", e.right)
+	calculate(e, e.right)
+	calculate(e, e.left)
+	e.reduced = e.a + e.b + e.c
+	// fmt.Println("Reduced form:", e.reduced)
 }
