@@ -133,9 +133,12 @@ func main() {
 		fmt.Println("LEN")
 		error(1)
 	}
+	if str[0][1] != '+' || str[0][1] != '-' { // ADD '+' if no sign at first occurence
+		str[0] = "+" + str[0]
+	}
 	fmt.Println(str[0])
 	fmt.Println(str[1])
-	regex := `((?m)([+-])?(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X)|X))|(\d+(?:\.\d+)?)|(?:(?:\*X)|X))(?:\^(\d+))?`
+	regex := `(?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))`
 	matchLeft, _ := regexp.MatchString(regex, str[0])  // CHANGER FUNCTION
 	matchRight, _ := regexp.MatchString(regex, str[1]) // SAME
 	if !matchLeft || !matchRight {
