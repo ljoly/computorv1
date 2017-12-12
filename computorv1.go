@@ -117,7 +117,7 @@ func removeWhitespaces(s string) string {
 	return ret
 }
 
-// ([+-])?(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X)|X))|(\d+(?:\.\d+)?)|(?:(?:\*X)|X))(?:\^(\d+))?
+// (?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))
 // SIZE FULL MATCH POUR PREMIER CHECK
 // CHECK TEST.GO
 
