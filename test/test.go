@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var re = regexp.MustCompile(`(?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))`)
-	var str = `+2-5+2`
+	var str = `+2*X^2+2-5+2-1*X^1`
 	len := utf8.RuneCountInString(str)
 	count := 0
 	polynom := 0
@@ -25,14 +25,26 @@ func main() {
 		// s := match[1] + match[2]
 		// fmt.Println("STR=", s)
 		count += utf8.RuneCountInString(match[0])
-		p, _ := strconv.Atoi(match[7])
+		p := 0
+		for j := 7; j > 0; j-- {
+			if match[j] != "" {
+				p, _ = strconv.Atoi(match[j])
+				break
+			}
+		}
 		fmt.Println("P = ", p)
 		if polynom > 0 && p > polynom {
 			polynom = p
 		}
 	}
-	fmt.Println("Polynome de degré", polynom)
+	msg := "Polynomial degree:"
+	if polynom > 2 {
+		msg = "Cant solve. " + msg
+	}
+	fmt.Println(msg, polynom)
 	if count != len {
-		fmt.Println("BAD FORMAT")
+		fmt.Println("COUNT=", count, "len=", len)
+	} else {
+		fmt.Println("OK")
 	}
 }
