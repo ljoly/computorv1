@@ -61,15 +61,13 @@ func revertSigns(s string) string {
 	if s[0] != '-' {
 		ret += "-"
 	}
-	len := utf8.RuneCountInString(s)
-	for i := 0; i < len; i++ {
-		a := s[i]
-		if a == '-' {
+	for _, v := range s {
+		if v == '-' {
 			ret += "+"
-		} else if a == '+' {
+		} else if v == '+' {
 			ret += "-"
 		} else {
-			ret += string(a)
+			ret += string(v)
 		}
 	}
 	return ret
@@ -106,12 +104,10 @@ func removeUselessSigns(s string) string {
 
 func removeWhitespaces(s string) string {
 	var ret string
-	len := utf8.RuneCountInString(s)
 
-	for i := 0; i < len; i++ {
-		a := s[i]
-		if a != ' ' && a != '\r' && a != '\n' && a != '\t' && a != '\f' && a != '\v' {
-			ret += string(a)
+	for _, v := range s {
+		if v != ' ' && v != '\r' && v != '\n' && v != '\t' && v != '\f' && v != '\v' {
+			ret += string(v)
 		}
 	}
 	return ret
