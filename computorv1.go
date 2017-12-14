@@ -4,152 +4,134 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
-// Env : a structure to store members of the equation
-type Env struct {
-	left, right, reduced, a, b, c string
-}
+func reduce(e Env, s string) {
+	var re = regexp.MustCompile(formatRegex)
+	var degreeTwo = regexp.MustCompile(degreeRegex)
+	// var x = regexp.MustCompile(`(?m)(?:X)`)
+	c := ""
 
-func error(e int) {
-	if e == 3 {
-		println("Error: No argument")
-	} else if e == 2 {
-		println("Error: Too many arguments")
-	} else if e == 1 {
-		println("Error: Wrong format")
-	}
-	os.Exit(-1)
-}
+	for _, group := range re.FindAllStringSubmatch(s, -1) {
+		if degreeTwo.FindAllStringSubmatch(group[0], -1) != nil {
+			if group[2] == "" {
+				c = "1"
+			} else {
+				c = group[2]
+			}
+			if _, err := strconv.ParseFloat(group[1]+c, 64); err != nil {
+				error(coefNotInt, e, group[0])
+			} else {
+				coef, _ := strconv.ParseFloat(group[1]+c, 64)
+				e.a += coef
+			}
+			// } else if x.FindAllStringSubmatch(s, -1) != nil {
 
-func reduceMember(s string) string {
-	// len := len(s)
-	ret := ""
+			// } else {
 
-	// fmt.Println(s)
-	// re2 := regexp.MustCompile("X\\^2")
-	// re1 := regexp.MustCompile("X\\^1")
-	// for regexp.MustCompile("X\\^2") != nil {
-	// 	fmt.Println(re.FindStringIndex(s))
-	// loc := re.FindStringIndex(s)
-	// fmt.Println(s[loc[0]:loc[1]])
-	// }
-
-	// reg := regexp.MustCompile("ab?")
-	// fmt.Println(reg.FindStringIndex("tablett"))
-	// fmt.Println(reg.FindStringIndex("foo") == nil)
-
-	return ret
-}
-
-// func getReduced(e Env) {
-// 	if utf8.RuneCountInString(e.right) != 1 && e.right[0] != '0' {
-// 		e.right = reduceMember(e.right)
-// 	}
-// 	e.left = reduceMember(e.left)
-
-// 	// e.reduced = e.reduced + e.left + e.right + "= 0"
-// 	// strings.Contains(e.reduced, "^2")
-// 	// fmt.Println("Reduced form:", e.reduced)
-// }
-
-func revertSigns(s string) string {
-	var ret string
-
-	if s[0] != '-' {
-		ret += "-"
-	}
-	for _, v := range s {
-		if v == '-' {
-			ret += "+"
-		} else if v == '+' {
-			ret += "-"
-		} else {
-			ret += string(v)
 		}
 	}
-	return ret
 }
 
-func calculate(e Env, s string) {
-
-}
-
-func removeUselessSigns(s string) string {
-	var ret string
+func getPolynom(s string, e *Env) int64 {
+	var re = regexp.MustCompile(formatRegex)
+	var reNegativeDegree = regexp.MustCompile(negativeDegreeRegex)
+	var exp = regexp.MustCompile(degreeRegex)
+	var polynom int64
 	len := utf8.RuneCountInString(s)
-
-	i := 0
-	if s[0] == '+' {
-		i++
-	}
-	for ; i < len; i++ {
-		a := s[i]
-		if a == 'X' && s[i+1] == '^' && s[i+2] == '0' {
-			i += 2
-		} else if a == 'X' && s[i+1] == '^' && s[i+2] == '1' {
-			ret += "X"
-			i += 2
-		} else if a == 'X' && s[i+1] == '^' && s[i+2] == '2' {
-			ret += "X^2"
-			i += 2
-		} else if a != '*' {
-			ret += string(a)
-		}
-	}
-	return ret
-}
-
-func removeWhitespaces(s string) string {
-	var ret string
+	count := 0
 
 	for _, v := range s {
-		if v != ' ' && v != '\r' && v != '\n' && v != '\t' && v != '\f' && v != '\v' {
-			ret += string(v)
+		if v == 'X' {
+			polynom = 1
+			break
 		}
 	}
-	return ret
-}
 
-// (?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))
-// SIZE FULL MATCH POUR PREMIER CHECK
-// CHECK TEST.GO
+	if reNegativeDegree.FindAllStringSubmatch(s, -1) != nil {
+		error(degreeNegative, *e, s)
+		return -1
+	}
+
+	for _, match := range re.FindAllStringSubmatch(s, -1) {
+		count += utf8.RuneCountInString(match[0])
+		if polynom > 0 {
+			var p int64
+			for _, v := range match[0] {
+				if v == 'X' && exp.FindAllStringSubmatch(match[0], -1) != nil {
+					for j := 7; j > 0; j-- {
+						if match[j] != "" {
+							if _, err := strconv.ParseInt(match[j], 10, 64); err != nil {
+								error(degreeNotInt, *e, match[0])
+							} else {
+								p, _ = strconv.ParseInt(match[j], 10, 64)
+								break
+							}
+						}
+					}
+				} else if v == 'X' {
+					p = 1
+				}
+				if p > 0 {
+					break
+				}
+			}
+
+			if p > polynom {
+				polynom = p
+			}
+		}
+	}
+	if count != len {
+		e := Env{}
+		error(wrongFormat, e, "")
+	}
+	return polynom
+}
 
 func main() {
+	e := Env{}
 	if len(os.Args) > 2 {
-		error(2)
+		error(tooManyArguments, e, "")
 	} else if len(os.Args) < 2 {
-		error(3)
+		error(noArgument, e, "")
 	}
 	arg := removeWhitespaces(os.Args[1])
+	fmt.Println("AAAAAAARRRRRGGGGG:", arg)
 	str := strings.Split(arg, "=")
 	if len(str) != 2 {
-		fmt.Println("LEN")
-		error(1)
+		error(wrongFormat, e, "")
 	}
-	if str[0][1] != '+' || str[0][1] != '-' { // ADD '+' if no sign at first occurence
-		str[0] = "+" + str[0]
+	e.left = addFirstSign(str[0])
+	e.right = addFirstSign(str[1])
+	pLeft := getPolynom(e.left, &e)
+	pRight := getPolynom(e.right, &e)
+	if pLeft < 0 || pRight < 0 {
+		e.degree = -1
+	} else {
+		if pLeft > pRight {
+			e.degree = pLeft
+		} else {
+			e.degree = pRight
+		}
 	}
-	fmt.Println(str[0])
-	fmt.Println(str[1])
-	regex := `(?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(\d+))?)|X(?:\^(\d+))?))`
-	matchLeft, _ := regexp.MatchString(regex, str[0])  // CHANGER FUNCTION
-	matchRight, _ := regexp.MatchString(regex, str[1]) // SAME
-	if !matchLeft || !matchRight {
-		fmt.Println("MATCH")
-		error(1)
+	if e.degree > 2 {
+		error(degreeTooHigh, e, "")
+	} else if e.degree < 0 {
+		error(degreeNegative, e, "")
 	}
-	e := Env{str[0], str[1], "", "", "", ""}
 	e.left = removeUselessSigns(e.left)
 	e.right = removeUselessSigns(e.right)
-	fmt.Println("LEFT", e.left)
-	fmt.Println("RIGHT", e.right)
+	fmt.Println("\nLEFT\n", e.left)
+	fmt.Println("\nRIGHT\n", e.right)
 	e.right = revertSigns(e.right)
-	fmt.Println("REVERSE", e.right)
-	calculate(e, e.right)
-	calculate(e, e.left)
-	e.reduced = e.a + e.b + e.c
-	// fmt.Println("Reduced form:", e.reduced)
+	fmt.Println("\nREVERSE RIGHT\n", e.right)
+	fmt.Println("RIGHT + LEFT", e.left+e.right)
+	// reduce(e, e.right)
+	// reduce(e, e.left)
+	fmt.Printf("\nReduced form: %f + %f + %f\n", e.a, e.b, e.c)
+	fmt.Println("Polynomial degree:", e.degree)
 }
