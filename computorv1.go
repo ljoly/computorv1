@@ -9,29 +9,34 @@ import (
 	"unicode/utf8"
 )
 
-func reduce(e Env, s string) {
+func reduceMember(member *float64, group []string, index int) {
+	coef := ""
+	e := Env{}
+	if group[index] == "" {
+		coef = "1"
+	} else {
+		coef = group[index]
+	}
+	if _, err := strconv.ParseFloat(group[1]+coef, 64); err != nil {
+		error(coefNotInt, e, group[0])
+	} else {
+		coefInt, _ := strconv.ParseFloat(group[1]+coef, 64)
+		*member += coefInt
+	}
+}
+
+func reduce(e *Env, s string) {
 	var re = regexp.MustCompile(formatRegex)
 	var degreeTwo = regexp.MustCompile(degreeRegex)
-	// var x = regexp.MustCompile(`(?m)(?:X)`)
-	c := ""
+	var x = regexp.MustCompile(`(?m)(?:X)`)
 
 	for _, group := range re.FindAllStringSubmatch(s, -1) {
 		if degreeTwo.FindAllStringSubmatch(group[0], -1) != nil {
-			if group[2] == "" {
-				c = "1"
-			} else {
-				c = group[2]
-			}
-			if _, err := strconv.ParseFloat(group[1]+c, 64); err != nil {
-				error(coefNotInt, e, group[0])
-			} else {
-				coef, _ := strconv.ParseFloat(group[1]+c, 64)
-				e.a += coef
-			}
-			// } else if x.FindAllStringSubmatch(s, -1) != nil {
-
-			// } else {
-
+			reduceMember(&e.a, group, 2)
+		} else if x.FindAllStringSubmatch(group[0], -1) != nil {
+			reduceMember(&e.b, group, 2)
+		} else {
+			reduceMember(&e.c, group, 5)
 		}
 	}
 }
@@ -41,12 +46,14 @@ func getPolynom(s string, e *Env) int64 {
 	var reNegativeDegree = regexp.MustCompile(negativeDegreeRegex)
 	var exp = regexp.MustCompile(degreeRegex)
 	var polynom int64
+	var hasX bool
 	len := utf8.RuneCountInString(s)
 	count := 0
 
 	for _, v := range s {
 		if v == 'X' {
-			polynom = 1
+			hasX = true
+			e.hasX = true
 			break
 		}
 	}
@@ -58,7 +65,7 @@ func getPolynom(s string, e *Env) int64 {
 
 	for _, match := range re.FindAllStringSubmatch(s, -1) {
 		count += utf8.RuneCountInString(match[0])
-		if polynom > 0 {
+		if hasX {
 			var p int64
 			for _, v := range match[0] {
 				if v == 'X' && exp.FindAllStringSubmatch(match[0], -1) != nil {
@@ -100,7 +107,6 @@ func main() {
 		error(noArgument, e, "")
 	}
 	arg := removeWhitespaces(os.Args[1])
-	fmt.Println("AAAAAAARRRRRGGGGG:", arg)
 	str := strings.Split(arg, "=")
 	if len(str) != 2 {
 		error(wrongFormat, e, "")
@@ -125,13 +131,14 @@ func main() {
 	}
 	e.left = removeUselessSigns(e.left)
 	e.right = removeUselessSigns(e.right)
-	fmt.Println("\nLEFT\n", e.left)
-	fmt.Println("\nRIGHT\n", e.right)
+	// fmt.Println("\nLEFT\n", e.left)
+	// fmt.Println("\nRIGHT\n", e.right)
 	e.right = revertSigns(e.right)
-	fmt.Println("\nREVERSE RIGHT\n", e.right)
-	fmt.Println("RIGHT + LEFT", e.left+e.right)
-	// reduce(e, e.right)
-	// reduce(e, e.left)
-	fmt.Printf("\nReduced form: %f + %f + %f\n", e.a, e.b, e.c)
+	// fmt.Println("\nREVERSE RIGHT\n", e.right)
+	reduce(&e, e.left)
+	reduce(&e, e.right)
+	storeSign(&e)
+	displayReduced(e)
 	fmt.Println("Polynomial degree:", e.degree)
+	solve(&e)
 }

@@ -1,6 +1,31 @@
 package main
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+)
+
+func storeSign(e *Env) {
+	if e.a < 0 {
+		e.a *= -1
+		e.signA = '-'
+	} else {
+		e.signA = '+'
+	}
+
+	if e.b < 0 {
+		e.b *= -1
+		e.signB = '-'
+	} else {
+		e.signB = '+'
+	}
+
+	if e.c < 0 {
+		e.c *= -1
+		e.signC = '-'
+	} else {
+		e.signC = '+'
+	}
+}
 
 func revertSigns(s string) string {
 	var ret string
@@ -21,20 +46,16 @@ func removeUselessSigns(s string) string {
 	var ret string
 	len := utf8.RuneCountInString(s)
 
-	i := 0
-	if s[0] == '+' {
-		i++
-	}
-	for ; i < len; i++ {
-		if s[i] == 'X' && s[i+1] == '^' && s[i+2] == '0' {
+	for i := 0; i < len; i++ {
+		if s[i] == 'X' && i+1 < len && s[i+1] == '^' && s[i+2] == '0' {
 			if s[i-1] == '+' || s[i-1] == '-' {
 				ret += "1"
 			}
 			i += 2
-		} else if s[i] == 'X' && s[i+1] == '^' && s[i+2] == '1' {
+		} else if s[i] == 'X' && i+1 < len && s[i+1] == '^' && s[i+2] == '1' {
 			ret += "X"
 			i += 2
-		} else if s[i] == 'X' && s[i+1] == '^' && s[i+2] == '2' {
+		} else if s[i] == 'X' && i+1 < len && s[i+1] == '^' && s[i+2] == '2' {
 			ret += "X^2"
 			i += 2
 		} else if s[i] != '*' {

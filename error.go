@@ -23,6 +23,10 @@ func error(e ErrorMsg, env Env, exp string) {
 		fmt.Println("Degree is not an Int. Can't solve.")
 	} else if e == coefNotInt {
 		fmt.Println("COUCOUCOUCOUCOU")
+	} else if e == falseExpression {
+		fmt.Println("Error: false expression.")
+	} else if e == isEquality {
+		fmt.Println("Error: expression is a simple equality.")
 	}
 	os.Exit(0)
 }

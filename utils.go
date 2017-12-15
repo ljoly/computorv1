@@ -10,6 +10,8 @@ const (
 	degreeNegative
 	degreeNotInt
 	coefNotInt
+	falseExpression
+	isEquality
 )
 
 const formatRegex = `(?m)([+-])(?:(?:(\d+(?:\.\d+)?)(?:(?:\*X(?:\^(?:[+-])?(\d+))?)|X(?:\^(?:[+-])?(\d+))?))|(\d+(?:\.\d+)?)|(?:(?:\*X(?:\^(?:[+-])?(\d+))?)|X(?:\^(?:[+-])?(\d+))?))`
@@ -17,7 +19,9 @@ const negativeDegreeRegex = `(?m)(?:\^(?:\-))`
 const degreeRegex = `(?m)(?:\^)`
 
 type Env struct {
-	left, right string
-	degree      int64
-	a, b, c     float64
+	hasX                bool
+	left, right         string
+	degree              int64
+	a, b, c             float64
+	signA, signB, signC byte
 }
