@@ -18,7 +18,7 @@ func reduceMember(member *float64, group []string, index int) {
 		coef = group[index]
 	}
 	if _, err := strconv.ParseFloat(group[1]+coef, 64); err != nil {
-		error(coefNotInt, e, group[0])
+		error(wrongFormat, e, group[0])
 	} else {
 		coefInt, _ := strconv.ParseFloat(group[1]+coef, 64)
 		*member += coefInt

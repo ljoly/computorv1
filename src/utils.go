@@ -9,7 +9,6 @@ const (
 	degreeTooHigh
 	degreeNegative
 	degreeNotInt
-	coefNotInt
 	falseExpression
 	isEquality
 )

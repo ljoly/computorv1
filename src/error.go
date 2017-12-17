@@ -21,8 +21,6 @@ func error(e ErrorMsg, env Env, exp string) {
 	} else if e == degreeNotInt {
 		fmt.Printf("Error: in \033[1;31m%s\033[0m\n", exp)
 		fmt.Println("Degree is not an Int. Can't solve.")
-	} else if e == coefNotInt {
-		fmt.Println("COUCOUCOUCOUCOU")
 	} else if e == falseExpression {
 		fmt.Println("Error: false expression.")
 	} else if e == isEquality {

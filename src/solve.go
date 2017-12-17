@@ -6,9 +6,16 @@ func solveDegreeTwo(e Env) {
 	delta := e.b*e.b - 4*e.a*e.c
 	fmt.Println("\nΔ =", delta)
 	if delta < 0 {
-		fmt.Println("Δ is negative. There is no real solution.")
+		fmt.Println("Δ is negative. There is no real solution, but two complex solutions:")
+		if e.b != 0 {
+			fmt.Printf("x1 = (%g - i√%g) / %g\n", -e.b, -delta, 2*e.a)
+			fmt.Printf("x2 = (%g + i√%g) / %g\n", -e.b, -delta, 2*e.a)
+		} else {
+			fmt.Printf("x1 = -i√%g / %g\n", -delta, 2*e.a)
+			fmt.Printf("x2 = i√%g / %g\n", -delta, 2*e.a)
+		}
 	} else if delta == 0 {
-		sol := -e.b / 2 * e.a
+		sol := -e.b / (2 * e.a)
 		fmt.Println("Δ is nul. The solution is:", sol)
 	} else if delta > 0 {
 		fmt.Println("Δ is positive. There are two real solutions:")
