@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: ljoly <ljoly@student.42.fr>                +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2017/12/21 14:19:03 by ljoly             #+#    #+#              #
+#    Updated: 2017/12/21 14:21:47 by ljoly            ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 NAME = computorv1
 
 RED=\033[1;31m
@@ -13,7 +25,7 @@ $(NAME):
 	@printf "$(GREEN)[✓]$(NC) Executable $(NAME) ready!\n"
 
 clean:
-	@rm -rf $(NAME)
+	@rm -f $(NAME)
 	@printf "$(RED)[-]$(NC) Executable $(NAME) deleted\n"
 
 re: clean all
